@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import "./App.css";
@@ -27,7 +27,7 @@ function App() {
     setInput("");
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:8000/chat", { session_id: SESSION_ID, message: msg, mode });
+      const res = await axios.post("https://c-ai-reer.onrender.com/chat", { session_id: SESSION_ID, message: msg, mode });
       setMessages(prev => [...prev, { role: "assistant", content: res.data.reply }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Error connecting to backend." }]);
@@ -44,7 +44,7 @@ function App() {
     formData.append("session_id", SESSION_ID);
     formData.append("file", file);
     try {
-      const res = await axios.post("http://localhost:8000/upload-pdf", formData);
+      const res = await axios.post("https://c-ai-reer.onrender.com/upload-pdf", formData);
       setPdfName(file.name);
       setMode("pdf");
       setMessages(prev => [...prev, { role: "assistant", content: "PDF ready! Indexed " + res.data.chunks + " chunks. Ask me anything about " + file.name }]);
@@ -54,7 +54,7 @@ function App() {
   };
 
   const clearChat = async () => {
-    await axios.post("http://localhost:8000/clear", { session_id: SESSION_ID });
+    await axios.post("https://c-ai-reer.onrender.com/clear", { session_id: SESSION_ID });
     setMessages([]); setMode("chat"); setPdfName(null); setShowWelcome(true);
   };
 
@@ -105,7 +105,7 @@ function App() {
           {showWelcome && (
             <div className="welcome">
               <h1>Hello, I am <span className="gradient-text">C-AI</span></h1>
-              <p>Your personal AI assistant — chat freely or upload a PDF to analyze it.</p>
+              <p>Your personal AI assistant � chat freely or upload a PDF to analyze it.</p>
               <div className="suggestions">
                 {SUGGESTIONS.map((s, i) => (
                   <button key={i} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
