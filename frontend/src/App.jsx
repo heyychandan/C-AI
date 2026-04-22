@@ -5,15 +5,20 @@ import "./App.css";
 
 const SESSION_ID = uuidv4();
 
+const SUGGESTIONS = [
+    "Who is your founder?",
+    "What can you do?",
+    "Tell me about Chandan",
+];
+
 function App() {
-    const [messages, setMessages] = useState([
-        { role: "assistant", content: "Hey! I'm your AI assistant. Ask me anything, or upload a PDF to chat with it! 👋" }
-    ]);
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
-    const [mode, setMode] = useState("chat"); // "chat" or "pdf"
+    const [mode, setMode] = useState("chat");
     const [pdfName, setPdfName] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(true);
     const bottomRef = useRef(null);
     const fileRef = useRef(null);
 
@@ -21,10 +26,11 @@ function App() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const sendMessage = async () => {
-        if (!input.trim()) return;
-
-        const userMsg = { role: "user", content: input };
+    const sendMessage = async (text) => {
+        const msg = text || input;
+        if (!msg.trim()) return;
+        setShowWelcome(false);
+        const userMsg = { role: "user", content: msg };
         setMessages(prev => [...prev, userMsg]);
         setInput("");
         setLoading(true);
@@ -32,11 +38,11 @@ function App() {
         try {
             const res = await axios.post("http://localhost:8000/chat", {
                 session_id: SESSION_ID,
-                message: input,
-                mode: mode,
+                message: msg,
+                mode,
             });
             setMessages(prev => [...prev, { role: "assistant", content: res.data.reply }]);
-        } catch (err) {
+        } catch {
             setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Error connecting to backend." }]);
         } finally {
             setLoading(false);
@@ -46,9 +52,9 @@ function App() {
     const handlePdfUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
+        setShowWelcome(false);
         setUploading(true);
-        setMessages(prev => [...prev, { role: "assistant", content: `📄 Uploading "${file.name}"...` }]);
+        setMessages(prev => [...prev, { role: "assistant", content: `📄 Processing "${file.name}"...` }]);
 
         const formData = new FormData();
         formData.append("session_id", SESSION_ID);
@@ -60,9 +66,9 @@ function App() {
             setMode("pdf");
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: `✅ PDF processed! (${res.data.chunks} chunks indexed)\n\nNow ask me anything about "${file.name}"!`
+                content: `✅ PDF ready! Indexed ${res.data.chunks} chunks.\n\nAsk me anything about "${file.name}"!`
             }]);
-        } catch (err) {
+        } catch {
             setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Failed to upload PDF." }]);
         } finally {
             setUploading(false);
@@ -71,62 +77,134 @@ function App() {
 
     const clearChat = async () => {
         await axios.post("http://localhost:8000/clear", { session_id: SESSION_ID });
-        setMessages([{ role: "assistant", content: "Chat cleared! Fresh start 🧹" }]);
+        setMessages([]);
         setMode("chat");
         setPdfName(null);
+        setShowWelcome(true);
     };
 
     return (
         <div className="app">
-            <header>
-                <h1>🤖 AI Assistant</h1>
-                <div className="header-right">
-                    {pdfName && (
-                        <span className="pdf-badge">📄 {pdfName}</span>
-                    )}
-                    <button onClick={() => fileRef.current.click()} className="upload-btn" disabled={uploading}>
-                        {uploading ? "Uploading..." : "Upload PDF"}
+            {/* Sidebar */}
+            <aside className="sidebar">
+                <div className="sidebar-top">
+                    <div className="logo">⚡ C-AI</div>
+                    <button className="new-chat-btn" onClick={clearChat}>+ New Chat</button>
+                </div>
+
+                <div className="sidebar-section">
+                    <p className="sidebar-label">Tools</p>
+                    <button className="sidebar-item" onClick={() => fileRef.current.click()}>
+                        📄 {uploading ? "Uploading..." : "Upload PDF"}
                     </button>
-                    <button onClick={clearChat} className="clear-btn">Clear</button>
+                    {pdfName && (
+                        <button className="sidebar-item active-pdf">
+                            📎 {pdfName}
+                        </button>
+                    )}
+                    {pdfName && (
+                        <button className="sidebar-item" onClick={() => { setMode(mode === "pdf" ? "chat" : "pdf"); }}>
+                            {mode === "pdf" ? "💬 Switch to Chat" : "📄 Switch to PDF"}
+                        </button>
+                    )}
                 </div>
-            </header>
 
-            <input
-                type="file"
-                accept=".pdf"
-                ref={fileRef}
-                onChange={handlePdfUpload}
-                style={{ display: "none" }}
-            />
-
-            {mode === "pdf" && (
-                <div className="mode-bar">
-                    💬 PDF Mode — asking about: <strong>{pdfName}</strong>
-                    <button onClick={() => setMode("chat")} className="switch-btn">Switch to Chat</button>
-                </div>
-            )}
-
-            <div className="chat-window">
-                {messages.map((msg, i) => (
-                    <div key={i} className={`bubble ${msg.role}`}>
-                        <span>{msg.content}</span>
+                <div className="sidebar-bottom">
+                    <div className="creator-card">
+                        <div className="creator-avatar">CK</div>
+                        <div className="creator-info">
+                            <p className="creator-name">Chandan Kumar Singh</p>
+                            <p className="creator-title">Founder & Developer</p>
+                        </div>
                     </div>
-                ))}
-                {loading && <div className="bubble assistant"><span>Thinking...</span></div>}
-                <div ref={bottomRef} />
-            </div>
 
-            <div className="input-bar">
-                <input
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && sendMessage()}
-                    placeholder={mode === "pdf" ? "Ask about your PDF..." : "Type a message..."}
-                />
-                <button onClick={sendMessage} disabled={loading}>Send</button>
-            </div>
+                    href="https://www.linkedin.com/in/chandan-kumar-singh-vit"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="linkedin-btn"
+          >
+                    🔗 LinkedIn Profile
+                </a>
+
+                href="https://github.com/heyychandan"
+                target="_blank"
+                rel="noreferrer"
+                className="github-btn"
+          >
+                🐙 GitHub Profile
+            </a>
         </div>
-    );
+      </aside >
+
+        {/* Main */ }
+        < main className = "main" >
+        <header className="topbar">
+          <div className="topbar-left">
+            <span className="model-badge">⚡ LLaMA 3.3 70B</span>
+            {mode === "pdf" && <span className="pdf-badge">📄 PDF Mode</span>}
+          </div>
+          <div className="topbar-right">
+            <span className="made-by">
+              Made by{" "}
+              <a href="https://www.linkedin.com/in/chandan-kumar-singh-vit" target="_blank" rel="noreferrer">
+                Chandan Kumar Singh
+              </a>
+            </span>
+          </div>
+        </header>
+
+        <div className="chat-area">
+          {showWelcome && (
+            <div className="welcome">
+              <h1>Hello, I'm <span className="gradient-text">C-AI</span> 👋</h1>
+              <p>Your personal AI assistant — chat freely or upload a PDF to analyze it.</p>
+              <div className="suggestions">
+                {SUGGESTIONS.map((s, i) => (
+                  <button key={i} className="suggestion-chip" onClick={() => sendMessage(s)}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {messages.map((msg, i) => (
+            <div key={i} className={`message ${msg.role}`}>
+              {msg.role === "assistant" && <div className="avatar ai-avatar">⚡</div>}
+              <div className="bubble">{msg.content}</div>
+              {msg.role === "user" && <div className="avatar user-avatar">U</div>}
+            </div>
+          ))}
+
+          {loading && (
+            <div className="message assistant">
+              <div className="avatar ai-avatar">⚡</div>
+              <div className="bubble typing">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        <div className="input-area">
+          <div className="input-box">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
+              placeholder={mode === "pdf" ? "Ask about your PDF..." : "Ask C-AI anything..."}
+            />
+            <button className="attach-btn" onClick={() => fileRef.current.click()} title="Upload PDF">📎</button>
+            <button className="send-btn" onClick={() => sendMessage()} disabled={loading}>➤</button>
+          </div>
+          <p className="disclaimer">C-AI can make mistakes. Built with Groq + LangChain + FAISS.</p>
+        </div>
+      </main >
+
+        <input type="file" accept=".pdf" ref={fileRef} onChange={handlePdfUpload} style={{ display: "none" }} />
+    </div >
+  );
 }
 
 export default App;
