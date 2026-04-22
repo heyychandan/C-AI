@@ -1,0 +1,53 @@
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdf-badge {
+  background: #1a3a1a;
+  color: #4caf50;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  border: 1px solid #4caf50;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.upload-btn:disabled {
+  opacity: 0.5;
+}
+
+.mode-bar {
+  background: #1a2a1a;
+  border-bottom: 1px solid #4caf50;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.85rem;
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.switch-btn {
+  background: transparent;
+  border: 1px solid #4caf50;
+  color: #4caf50;
+  padding: 0.2rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
