@@ -10,7 +10,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "https://c-ai-eight.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -19,14 +19,14 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     session_id: str
     message: str
-    mode: str = "chat"  # "chat" or "pdf"
+    mode: str = "chat"
 
 class ClearRequest(BaseModel):
     session_id: str
 
 @app.get("/")
 def root():
-    return {"status": "AI Chatbot backend is running 🚀"}
+    return {"status": "AI Chatbot backend is running"}
 
 @app.post("/chat")
 def chat(request: ChatRequest):
@@ -41,20 +41,12 @@ async def upload_pdf(
     session_id: str = Form(...),
     file: UploadFile = File(...)
 ):
-    # Save uploaded file temporarily
     os.makedirs("temp", exist_ok=True)
     file_path = f"temp/{session_id}.pdf"
-
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-
-    # Process PDF into vector store
     chunk_count = process_pdf(session_id, file_path)
-
-    return {
-        "status": "PDF processed successfully ✅",
-        "chunks": chunk_count
-    }
+    return {"status": "PDF processed successfully", "chunks": chunk_count}
 
 @app.post("/clear")
 def clear(request: ClearRequest):
