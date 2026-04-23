@@ -50,3 +50,12 @@ pip install -r requirements.txt
 ```
 
 Create a `.env` file in the `backend/` folder:
+
+---
+
+## ⚠️ Usage & License
+
+This project is for portfolio purposes only.  
+Please do not copy or reproduce without explicit permission from the author.
+
+© 2026 Chandan Kumar Singh — All rights reserved.
