@@ -105,7 +105,7 @@ function App() {
           {showWelcome && (
             <div className="welcome">
               <h1>Hello, I am <span className="gradient-text">C-AI</span></h1>
-              <p>Your personal AI assistant — chat freely or upload a PDF to analyze it.</p>
+              <p>Your personal AI assistant ' chat freely or upload a PDF to analyze it.</p>
               <div className="suggestions">
                 {SUGGESTIONS.map((s, i) => (
                   <button key={i} className="suggestion-chip" onClick={() => sendMessage(s)}>{s}</button>
